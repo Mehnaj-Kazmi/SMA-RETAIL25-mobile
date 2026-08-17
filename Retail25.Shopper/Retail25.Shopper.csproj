@@ -1,0 +1,99 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+			Android only, deliberately.
+
+			iOS and Mac Catalyst cannot be built on Windows at all â€” they need a networked Mac â€” and
+			leaving them in the target list makes every restore fail on a machine that will never be
+			able to satisfy them. The Windows target is dropped for a different reason: this app is
+			designed for a phone held one-handed next to a trolley, and a desktop window of it would
+			be a screen nobody uses that still has to keep compiling.
+
+			Adding iOS back is one entry here plus `dotnet workload install maui-ios`, on a Mac.
+		-->
+		<TargetFrameworks>net10.0-android</TargetFrameworks>
+
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Retail25.Shopper</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+		<!--
+			Put the .NET assemblies inside the APK, including in Debug.
+
+			By default an Android Debug build uses "fast deployment": the APK ships without your
+			assemblies and the build pushes them separately to
+			/data/user/0/<pkg>/files/.__override__/. It makes the inner loop quicker in Visual Studio
+			and is a trap everywhere else. The APK stops changing when only C# changes — so it looks
+			stale when it is not — and installing that APK by hand with `adb install` produces an app
+			that dies on launch with "No assemblies found ... Assuming this is part of Fast
+			Deployment", because nothing ever pushed them.
+
+			Embedding costs a few seconds a build and buys an APK that is the whole application: what
+			you install is what runs, on any machine, by any means.
+		-->
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+
+		<!-- Display name: what appears under the icon on the home screen. -->
+		<ApplicationTitle>Retail</ApplicationTitle>
+
+		<!--
+			App Identifier. Changed from com.retail25.shopper, which means Android treats this as a
+			different application entirely: the old one has to be uninstalled, and anything it had in
+			its sandbox â€” the stored refresh token, the device id â€” does not carry over. That is a
+			one-time cost at this stage and the right time to pay it.
+		-->
+		<ApplicationId>com.sma.shopper</ApplicationId>
+
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<!--
+			API 23 (Marshmallow), and not lower because AndroidX will not allow it: the lifecycle
+			runtime MAUI sits on declares minSdk 23, and the manifest merger refuses to build below it
+			rather than let an app call APIs that are not there.
+
+			No practical cost. The floor exists for rugged handhelds, which stay in service long after
+			the consumer phones of their generation â€” but the C72 this is built for runs Android 11,
+			and API 23 shipped in 2015.
+		-->
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--
+			App Icon. A PNG rather than the template's SVG pair: the icon pipeline rasterises SVG
+			through Skia, where <text> depends on font lookup succeeding inside that renderer, and the
+			mark has "SMA" in it. A PNG is the same pixels everywhere. Regenerate with brand/make_icon.py.
+		-->
+		<MauiIcon Include="Resources\AppIcon\appicon.png" />
+
+		<!-- Splash Screen: transparent mark composited over the brand colour. -->
+		<MauiSplashScreen Include="Resources\Splash\splash.png" Color="#2A2650" BaseSize="160,160" />
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+
+		<!-- The live cart. Same version as the server's hub, so the protocols cannot drift apart. -->
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.10" />
+	</ItemGroup>
+
+</Project>
+

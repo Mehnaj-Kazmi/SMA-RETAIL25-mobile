@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Retail25.Shopper.Pages.PreviousSalesPage"
+             BackgroundColor="#F5F6FA"
+             Shell.NavBarIsVisible="False"
+             Title="Previous purchases">
+
+    <!--
+        Built to match the cart screen rather than the sign-in screens: this is one of the two places
+        a customer lives once they are shopping, so it carries the same header band and the same light
+        reading surface.
+    -->
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Padding="22,14,22,18" RowDefinitions="Auto,Auto">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#93B4E2" Offset="0.0" />
+                    <GradientStop Color="#6A7CC0" Offset="0.55" />
+                    <GradientStop Color="#4C4F94" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,12">
+                <Border Grid.Column="0"
+                        BackgroundColor="#33FFFFFF"
+                        Stroke="#5CFFFFFF"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 999"
+                        Padding="9,3">
+                    <Label Text="◀  BACK TO BASKET" TextColor="White" FontFamily="SmaMedium" FontSize="9">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBack" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Border>
+            </Grid>
+
+            <VerticalStackLayout Grid.Row="1" Spacing="1">
+                <Label Text="PREVIOUS PURCHASES" TextColor="#D6FFFFFF" FontFamily="SmaMedium" FontSize="8.5" CharacterSpacing="1.2" />
+                <Label x:Name="SummaryLabel" Text="Loading…" TextColor="White" FontFamily="SmaBold" FontSize="20" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Receipts -->
+        <CollectionView x:Name="SalesView"
+                        Grid.Row="1"
+                        Margin="14,12,14,14"
+                        ItemsSource="{Binding .}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24,60" Spacing="8" HorizontalOptions="Center">
+                    <Label x:Name="EmptyTitle"
+                           Text="No purchases yet"
+                           TextColor="#6C7089"
+                           FontFamily="SmaMedium"
+                           FontSize="13"
+                           HorizontalTextAlignment="Center" />
+                    <Label x:Name="EmptyBody"
+                           Text="Once you pay for a basket it will be listed here."
+                           TextColor="#8A8EA6"
+                           FontFamily="SmaText"
+                           FontSize="11"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White"
+                            Stroke="Transparent"
+                            StrokeShape="RoundRectangle 11"
+                            Padding="11,9"
+                            Margin="0,0,0,7">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <Label Grid.Row="0"
+                                   Grid.Column="0"
+                                   Text="{Binding Heading}"
+                                   TextColor="#1E2033"
+                                   FontFamily="SmaMedium"
+                                   FontSize="12" />
+
+                            <Label Grid.Row="0"
+                                   Grid.Column="1"
+                                   Text="{Binding Amount}"
+                                   TextColor="#1E2033"
+                                   FontFamily="SmaBold"
+                                   FontSize="13"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Grid.Row="1"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="2"
+                                   Text="{Binding Detail}"
+                                   TextColor="#8A8EA6"
+                                   FontFamily="SmaText"
+                                   FontSize="10"
+                                   Margin="0,2,0,0" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

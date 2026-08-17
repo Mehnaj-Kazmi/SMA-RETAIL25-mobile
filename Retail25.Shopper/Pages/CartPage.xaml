@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Retail25.Shopper.Pages.CartPage"
+             BackgroundColor="#F5F6FA"
+             Shell.NavBarIsVisible="False"
+             Title="Your cart">
+
+    <!--
+        This screen breaks out of the gradient on purpose. It is read while walking, under shop
+        lighting, and a running total is the one thing that must never be hard to read. The gradient
+        survives as the header band so the app still looks like itself.
+    -->
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Padding="22,14,22,18" RowDefinitions="Auto,Auto">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#93B4E2" Offset="0.0" />
+                    <GradientStop Color="#6A7CC0" Offset="0.55" />
+                    <GradientStop Color="#4C4F94" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+                <Border Grid.Column="0"
+                        BackgroundColor="#33FFFFFF"
+                        Stroke="#5CFFFFFF"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 999"
+                        Padding="9,3">
+                    <HorizontalStackLayout Spacing="6">
+                        <Ellipse x:Name="LiveDot" WidthRequest="6" HeightRequest="6" Fill="#7BE3A8" VerticalOptions="Center" />
+                        <Label x:Name="CounterLabel" Text="COUNTER" TextColor="White" FontFamily="SmaMedium" FontSize="9" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Border Grid.Column="2"
+                        BackgroundColor="#33FFFFFF"
+                        Stroke="#5CFFFFFF"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 999"
+                        Padding="9,3">
+                    <Label x:Name="CountLabel" Text="0 items" TextColor="White" FontFamily="SmaMedium" FontSize="9" />
+                </Border>
+            </Grid>
+
+            <VerticalStackLayout Grid.Row="1" Spacing="1">
+                <Label Text="RUNNING TOTAL" TextColor="#D6FFFFFF" FontFamily="SmaMedium" FontSize="8.5" CharacterSpacing="1.2" />
+                <Label x:Name="TotalLabel" Text="0.00" TextColor="White" FontFamily="SmaBold" FontSize="26" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Lines -->
+        <CollectionView x:Name="LinesView"
+                        Grid.Row="1"
+                        Margin="14,12,14,0"
+                        ItemsSource="{Binding .}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24,60" Spacing="8" HorizontalOptions="Center">
+                    <Label Text="Nothing in the basket yet"
+                           TextColor="#6C7089"
+                           FontFamily="SmaMedium"
+                           FontSize="13"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="Put an item down at the counter and it will appear here."
+                           TextColor="#8A8EA6"
+                           FontFamily="SmaText"
+                           FontSize="11"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White"
+                            Stroke="Transparent"
+                            StrokeShape="RoundRectangle 11"
+                            Padding="11,9"
+                            Margin="0,0,0,5">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="{Binding Flag}"
+                                       IsVisible="{Binding IsFresh}"
+                                       TextColor="#4C5FC4"
+                                       FontFamily="SmaMedium"
+                                       FontSize="8"
+                                       CharacterSpacing="1.1" />
+                                <Label Text="{Binding Name}" TextColor="#12142A" FontFamily="SmaMedium" FontSize="12" />
+                                <Label Text="{Binding Detail}" TextColor="#7A7E96" FontFamily="SmaText" FontSize="9.5" />
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding Amount}"
+                                   TextColor="#12142A"
+                                   FontFamily="SmaBold"
+                                   FontSize="12.5"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Totals + action -->
+        <VerticalStackLayout Grid.Row="2" Padding="18,12,18,20" Spacing="4" BackgroundColor="#F5F6FA">
+
+            <!--
+                A tag the reader saw and refused. Shown, never swallowed: an item that silently fails
+                to appear is an argument at the exit gate.
+            -->
+            <Border x:Name="RejectBanner"
+                    IsVisible="False"
+                    BackgroundColor="#FDF0E7"
+                    Stroke="Transparent"
+                    StrokeShape="RoundRectangle 11"
+                    Padding="11,9"
+                    Margin="0,0,0,8">
+                <VerticalStackLayout Spacing="2">
+                    <Label x:Name="RejectTitle" Text="Tag not recognised" TextColor="#8A400F" FontFamily="SmaMedium" FontSize="11" />
+                    <Label x:Name="RejectDetail" Text="Ask staff to add this item" TextColor="#A2632F" FontFamily="SmaText" FontSize="9.5" />
+                </VerticalStackLayout>
+            </Border>
+
+            <BoxView HeightRequest="1" Color="#E2E4EE" Margin="0,0,0,6" />
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Subtotal" TextColor="#6C7089" FontFamily="SmaText" FontSize="11" />
+                <Label Grid.Column="1" x:Name="SubtotalLabel" Text="0.00" TextColor="#6C7089" FontFamily="SmaText" FontSize="11" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" x:Name="TaxNameLabel" Text="Tax" TextColor="#6C7089" FontFamily="SmaText" FontSize="11" />
+                <Label Grid.Column="1" x:Name="TaxLabel" Text="0.00" TextColor="#6C7089" FontFamily="SmaText" FontSize="11" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" Margin="0,3,0,10">
+                <Label Grid.Column="0" Text="Total" TextColor="#12142A" FontFamily="SmaBold" FontSize="14" />
+                <Label Grid.Column="1" x:Name="GrandTotalLabel" Text="0.00" TextColor="#12142A" FontFamily="SmaBold" FontSize="14" />
+            </Grid>
+
+            <Button x:Name="PayButton"
+                    Text="Pay"
+                    BackgroundColor="#1D2050"
+                    TextColor="White"
+                    FontFamily="SmaMedium"
+                    FontSize="12.5"
+                    CornerRadius="24"
+                    HeightRequest="46"
+                    Clicked="OnPay" />
+
+            <!--
+                The only other screen a customer can reach. Placed here rather than in a navigation
+                bar because this app has two screens, and a bar drawn for two entries costs more room
+                than it saves on a phone held one-handed in an aisle.
+            -->
+            <Button Text="Previous Purchases"
+                    BackgroundColor="Transparent"
+                    TextColor="#4C4F94"
+                    FontFamily="SmaMedium"
+                    FontSize="11"
+                    BorderWidth="0"
+                    HeightRequest="34"
+                    Clicked="OnPreviousSales" />
+
+            <Button Text="Leave This Counter"
+                    BackgroundColor="Transparent"
+                    TextColor="#6C7089"
+                    FontFamily="SmaText"
+                    FontSize="11"
+                    BorderWidth="0"
+                    HeightRequest="34"
+                    Clicked="OnLeave" />
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

@@ -1,0 +1,37 @@
+# Build output. Around a gigabyte of it for this project — an Android build keeps a full copy of the
+# linked assemblies, the resource cache and the native runtime per architecture under obj/, and the
+# signed APKs under bin/. All of it is reproducible from a clone with `dotnet build`, and none of it
+# is reviewable, so it does not belong in history.
+[Bb]in/
+[Oo]bj/
+
+# The signed package. Built by deploy.ps1 and by CI; ~19 MB each and a new one every build, which is
+# exactly the shape of file that makes a repository slow to clone for ever after.
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Per-developer, not per-project: which files were open, which device was last deployed to.
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# Rider and Visual Studio scratch.
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# MAUI's resizetizer cache and the generated splash/icon sets it writes from the source SVGs.
+*.binlog
+msbuild.log
+
+# Python bytecode from the brand/ scripts, which are run in place rather than packaged.
+__pycache__/
+*.pyc
+
+# OS noise.
+[Tt]humbs.db
+.DS_Store

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Retail25.Shopper.Pages.WelcomePage"
+             Background="{StaticResource SkyGradient}"
+             Shell.NavBarIsVisible="False"
+             Title="Welcome">
+
+    <Grid RowDefinitions="*,Auto,Auto"
+          Padding="26,16,26,34"
+          RowSpacing="0">
+
+        <!--
+            The brand mark, and the only thing above the headline.
+
+            The menu button and the drawn asterisk that used to sit here are gone: the menu opened
+            nothing, and the asterisk was a placeholder mark competing with the logo for the same job.
+            One image, one meaning.
+
+            Referenced as a single shared asset â€” Resources/Images/sma_logo.png â€” which is also what
+            the icon is generated from. Replacing that one file re-brands the whole app.
+        -->
+        <Image Grid.Row="0"
+               Source="sma_logo.png"
+               Aspect="AspectFit"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               WidthRequest="190"
+               HeightRequest="190" />
+
+        <!-- Poster -->
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Margin="0,0,0,26">
+            <Label Style="{StaticResource Poster}"
+                   FontSize="19"
+                   Text="YOUR BILL,&#10;LIVE AS YOU SHOP" />
+
+            <Label Style="{StaticResource PosterBody}"
+                   Text="Connect to the counter and every item appears on your phone as it is scanned, with the total already worked out." />
+        </VerticalStackLayout>
+
+        <!-- Actions -->
+        <VerticalStackLayout Grid.Row="2" Spacing="11">
+
+            <Button Text="Create Account"
+                    Style="{StaticResource PillSolid}"
+                    Clicked="OnCreateAccount" />
+
+            <Button Text="I Already Have an Account"
+                    Style="{StaticResource PillGhost}"
+                    Clicked="OnSignIn" />
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>
+

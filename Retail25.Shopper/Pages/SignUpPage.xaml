@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:drawing="clr-namespace:Retail25.Shopper.Drawing"
+             x:Class="Retail25.Shopper.Pages.SignUpPage"
+             Background="{StaticResource SkyGradient}"
+             Shell.NavBarIsVisible="False"
+             Title="Create account">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto"
+              Padding="26,14,26,34"
+              RowSpacing="0">
+
+            <Label Grid.Row="0" Style="{StaticResource BackGlyph}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBack" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <Label Grid.Row="1"
+                   Style="{StaticResource Poster}"
+                   FontSize="17"
+                   Text="CREATE YOUR&#10;ACCOUNT"
+                   Margin="0,4,0,20" />
+
+            <!-- Fields -->
+            <VerticalStackLayout Grid.Row="2" Spacing="10">
+
+                <!-- First and last share a row so the whole form fits above the keyboard. -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+
+                    <Border Grid.Column="0" Style="{StaticResource FieldCard}">
+                        <VerticalStackLayout Spacing="0">
+                            <Label Style="{StaticResource FieldLabel}" Text="FIRST NAME" />
+                            <!--
+                                No placeholder text on any field here. The uppercase label above each
+                                one already names it, and a greyed-out example inside the box is read
+                                by roughly half of people as a value that is already filled in.
+                            -->
+                            <Entry x:Name="FirstNameEntry"
+                                   Style="{StaticResource FieldEntry}"
+                                   ReturnType="Next" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource FieldCard}">
+                        <VerticalStackLayout Spacing="0">
+                            <Label Style="{StaticResource FieldLabel}" Text="LAST NAME" />
+                            <Entry x:Name="LastNameEntry"
+                                   Style="{StaticResource FieldEntry}"
+                                   ReturnType="Next" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                </Grid>
+
+                <Border Style="{StaticResource FieldCard}">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource FieldLabel}" Text="PHONE" />
+                        <Entry x:Name="PhoneEntry"
+                               Style="{StaticResource FieldEntry}"
+                               Keyboard="Telephone"
+                               ReturnType="Next" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource FieldCard}">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource FieldLabel}" Text="EMAIL" />
+                        <Entry x:Name="EmailEntry"
+                               Style="{StaticResource FieldEntry}"
+                               Keyboard="Email"
+                               ReturnType="Next" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource FieldCard}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
+                            <Label Style="{StaticResource FieldLabel}" Text="PASSWORD" />
+                            <Entry x:Name="PasswordEntry"
+                                   Style="{StaticResource FieldEntry}"
+                                   IsPassword="True"
+                                   ReturnType="Done" />
+                        </VerticalStackLayout>
+
+                        <GraphicsView x:Name="EyeView"
+                                      Grid.Column="1"
+                                      WidthRequest="24"
+                                      HeightRequest="24"
+                                      VerticalOptions="Center">
+                            <GraphicsView.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTogglePassword" />
+                            </GraphicsView.GestureRecognizers>
+                        </GraphicsView>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+
+            <Label Grid.Row="3"
+                   Style="{StaticResource Caption}"
+                   TextColor="{StaticResource InkSoft}"
+                   Margin="2,12,2,20"
+                   Text="At least 8 characters. You will confirm your email before your first shop." />
+
+            <VerticalStackLayout Grid.Row="4" Spacing="11">
+                <Label x:Name="ErrorLabel"
+                       Style="{StaticResource Caption}"
+                       TextColor="#FFE2E2"
+                       IsVisible="False"
+                       Margin="4,0,4,2" />
+
+                <Button x:Name="SubmitButton"
+                        Text="Create Account"
+                        Style="{StaticResource PillSolid}"
+                        Clicked="OnCreateAccount" />
+            </VerticalStackLayout>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
+
+

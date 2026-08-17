@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Android has blocked plain HTTP by default since API 28, which is correct and stays on here for
+    everything on the internet. The development API runs on http://<laptop>:5000 with no certificate
+    a handset would trust, so private network ranges are excepted — and only those.
+
+    This is a development affordance, not a design. A real deployment terminates TLS in front of the
+    API and this file should shrink to nothing: a shopper's password and bearer token crossing a
+    shop's wi-fi in the clear is exactly the attack the default is there to prevent.
+-->
+<network-security-config>
+
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- The emulator's alias for the host machine. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+
+        <!-- RFC 1918 space, which is where a development machine on a shop or office wi-fi lives. -->
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">192.168.18.40</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
+
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+
+</network-security-config>

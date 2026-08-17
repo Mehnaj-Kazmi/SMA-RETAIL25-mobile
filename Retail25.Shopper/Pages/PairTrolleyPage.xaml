@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:drawing="clr-namespace:Retail25.Shopper.Drawing"
+             x:Class="Retail25.Shopper.Pages.PairTrolleyPage"
+             Background="{StaticResource SkyGradient}"
+             Shell.NavBarIsVisible="False"
+             Title="Connect your trolley">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+          Padding="26,14,26,34"
+          RowSpacing="0">
+
+        <Label Grid.Row="0" Style="{StaticResource BackGlyph}">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnBack" />
+            </Label.GestureRecognizers>
+        </Label>
+
+        <GraphicsView x:Name="TrolleyView"
+                      Grid.Row="1"
+                      WidthRequest="78"
+                      HeightRequest="78"
+                      HorizontalOptions="Start"
+                      Margin="0,10,0,24" />
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10" Margin="0,0,0,24">
+            <Label Style="{StaticResource Poster}"
+                   FontSize="17"
+                   Text="CONNECT&#10;TO THE COUNTER" />
+            <Label Style="{StaticResource PosterBody}"
+                   Text="Type the three-digit counter code, 301 to 320." />
+        </VerticalStackLayout>
+
+        <!--
+            The boxes are for reading; a single off-screen Entry does the actual typing. One field
+            means the platform's own editing behaviour â€” backspace, paste, autofill of an SMS code â€”
+            keeps working, which four separate one-character fields all break in their own way.
+        -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="11" HeightRequest="70">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnFocusCode" />
+            </Grid.GestureRecognizers>
+
+            <Border x:Name="Box0" Grid.Column="0" Style="{StaticResource FieldCard}" StrokeShape="RoundRectangle 16" Padding="0">
+                <Grid>
+                    <Label x:Name="Digit0" HorizontalOptions="Center" VerticalOptions="Center"
+                           FontFamily="SmaBold" FontSize="20" TextColor="{StaticResource Ink}" />
+                    <BoxView x:Name="Caret0" WidthRequest="2" HeightRequest="28" Color="{StaticResource Ink}"
+                             Opacity="0.7" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="Box1" Grid.Column="1" Style="{StaticResource FieldCard}" StrokeShape="RoundRectangle 16" Padding="0">
+                <Grid>
+                    <Label x:Name="Digit1" HorizontalOptions="Center" VerticalOptions="Center"
+                           FontFamily="SmaBold" FontSize="20" TextColor="{StaticResource Ink}" />
+                    <BoxView x:Name="Caret1" WidthRequest="2" HeightRequest="28" Color="{StaticResource Ink}"
+                             Opacity="0.7" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="Box2" Grid.Column="2" Style="{StaticResource FieldCard}" StrokeShape="RoundRectangle 16" Padding="0">
+                <Grid>
+                    <Label x:Name="Digit2" HorizontalOptions="Center" VerticalOptions="Center"
+                           FontFamily="SmaBold" FontSize="20" TextColor="{StaticResource Ink}" />
+                    <BoxView x:Name="Caret2" WidthRequest="2" HeightRequest="28" Color="{StaticResource Ink}"
+                             Opacity="0.7" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="False" />
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <!-- The real field. Opacity 0 rather than IsVisible=False, which would make it unfocusable. -->
+        <Entry x:Name="CodeEntry"
+               Grid.Row="4"
+               Opacity="0"
+               HeightRequest="1"
+               MaxLength="3"
+               Keyboard="Numeric"
+               ReturnType="Go"
+               TextChanged="OnCodeChanged"
+               Completed="OnConnect" />
+
+        <Label x:Name="StatusLabel"
+               Grid.Row="5"
+               Style="{StaticResource Caption}"
+               HorizontalOptions="Center"
+               HorizontalTextAlignment="Center"
+               Margin="0,16,0,0"
+               VerticalOptions="Start"
+               Text="The number is displayed at the counter." />
+
+        <VerticalStackLayout Grid.Row="6" Spacing="11">
+
+            <Button x:Name="ConnectButton"
+                    Text="Connect"
+                    Style="{StaticResource PillSolid}"
+                    IsEnabled="False"
+                    Clicked="OnConnect" />
+
+            <Button Text="Scan QR Instead"
+                    Style="{StaticResource PillGhost}"
+                    Clicked="OnScanQr" />
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>
+
+
+

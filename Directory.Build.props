@@ -1,0 +1,20 @@
+<Project>
+
+  <!--
+    Where the Android build finds a JDK.
+
+    .NET Android 36 accepts JDK 21 and refuses anything newer, while Android Studio ships a JDK 25
+    in its `jbr` folder — so the JDK that is already on this machine and on PATH is precisely the one
+    that cannot build this project (error XA0030). Rather than move the machine's JAVA_HOME and
+    change what every other tool sees, the path is set here, for this project only.
+
+    Guarded on Exists so a machine without this exact JDK falls through to the normal discovery
+    (JAVA_HOME, then the SDK's own search) instead of failing with a path that is not there. An
+    explicitly-passed -p:JavaSdkDirectory always wins.
+  -->
+  <PropertyGroup Condition="'$(JavaSdkDirectory)' == ''">
+    <_Retail25Jdk21>$(USERPROFILE)\.jdks\jdk-21.0.12+8</_Retail25Jdk21>
+    <JavaSdkDirectory Condition="Exists('$(_Retail25Jdk21)')">$(_Retail25Jdk21)</JavaSdkDirectory>
+  </PropertyGroup>
+
+</Project>

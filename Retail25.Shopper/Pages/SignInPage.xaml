@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:drawing="clr-namespace:Retail25.Shopper.Drawing"
+             x:Class="Retail25.Shopper.Pages.SignInPage"
+             Background="{StaticResource SkyGradient}"
+             Shell.NavBarIsVisible="False"
+             Title="Sign in">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+              Padding="26,14,26,34"
+              RowSpacing="0">
+
+            <Label Grid.Row="0" Style="{StaticResource BackGlyph}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBack" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <Label x:Name="WelcomeHeading"
+                   Grid.Row="1"
+                   Style="{StaticResource Poster}"
+                   FontSize="17"
+                   Text="WELCOME&#10;BACK"
+                   Margin="0,4,0,22" />
+
+            <VerticalStackLayout Grid.Row="4" Spacing="10">
+
+                <Border Style="{StaticResource FieldCard}">
+                    <VerticalStackLayout Spacing="0">
+                        <Label Style="{StaticResource FieldLabel}" Text="EMAIL" />
+                        <Entry x:Name="EmailEntry"
+                               Style="{StaticResource FieldEntry}"
+                               Keyboard="Email"
+                               ReturnType="Next" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource FieldCard}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
+                            <Label Style="{StaticResource FieldLabel}" Text="PASSWORD" />
+                            <Entry x:Name="PasswordEntry"
+                                   Style="{StaticResource FieldEntry}"
+                                   IsPassword="True"
+                                   ReturnType="Done" />
+                        </VerticalStackLayout>
+
+                        <GraphicsView x:Name="EyeView"
+                                      Grid.Column="1"
+                                      WidthRequest="24"
+                                      HeightRequest="24"
+                                      VerticalOptions="Center">
+                            <GraphicsView.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTogglePassword" />
+                            </GraphicsView.GestureRecognizers>
+                        </GraphicsView>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Grid.Row="6" Spacing="11" Margin="0,22,0,0">
+
+                <Label x:Name="ErrorLabel"
+                       Style="{StaticResource Caption}"
+                       TextColor="#FFE2E2"
+                       IsVisible="False"
+                       Margin="4,0,4,2" />
+
+                <Button x:Name="SubmitButton"
+                        Text="Sign In"
+                        Style="{StaticResource PillSolid}"
+                        Clicked="OnSignIn" />
+
+                <Button Text="Forgot Password"
+                        Style="{StaticResource PillGhost}"
+                        Clicked="OnForgotPassword" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
+
+

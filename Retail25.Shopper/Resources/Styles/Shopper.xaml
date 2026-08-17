@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        The app's design tokens, in one place.
+
+        Four screens share this gradient, these two button shapes and this field treatment. Defining
+        them per page is how the third screen ends up with a slightly different blue and a 50px pill
+        next to the others' 52px â€” differences nobody decides on and everybody sees.
+    -->
+
+    <Color x:Key="Ink">#0C0E1E</Color>
+    <Color x:Key="InkSoft">#A5121430</Color>
+    <Color x:Key="OnDark">#FFFFFF</Color>
+    <Color x:Key="OnDarkSoft">#B8FFFFFF</Color>
+    <Color x:Key="FieldFill">#66FFFFFF</Color>
+    <Color x:Key="FieldEdge">#8CFFFFFF</Color>
+    <Color x:Key="FieldEdgeLit">#FFFFFFFF</Color>
+
+    <!-- Sky to dusk. The app's signature; see the design review. -->
+    <LinearGradientBrush x:Key="SkyGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#CFECF5" Offset="0.00" />
+        <GradientStop Color="#ADD3EC" Offset="0.20" />
+        <GradientStop Color="#83A4DB" Offset="0.42" />
+        <GradientStop Color="#5D71B7" Offset="0.62" />
+        <GradientStop Color="#3E4180" Offset="0.83" />
+        <GradientStop Color="#2A2650" Offset="1.00" />
+    </LinearGradientBrush>
+
+    <!-- Type -->
+
+    <Style x:Key="Poster" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontFamily" Value="SmaBold" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="CharacterSpacing" Value="-0.3" />
+        <Setter Property="LineHeight" Value="1.05" />
+    </Style>
+
+    <Style x:Key="PosterBody" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource InkSoft}" />
+        <Setter Property="FontFamily" Value="SmaText" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="LineHeight" Value="1.35" />
+    </Style>
+
+    <Style x:Key="Caption" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource OnDarkSoft}" />
+        <Setter Property="FontFamily" Value="SmaText" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="LineHeight" Value="1.35" />
+    </Style>
+
+    <!-- Fields -->
+
+    <Style x:Key="FieldCard" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource FieldFill}" />
+        <Setter Property="Stroke" Value="{StaticResource FieldEdge}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Padding" Value="14,6,12,8" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+    </Style>
+
+    <Style x:Key="FieldLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="#99121430" />
+        <Setter Property="FontFamily" Value="SmaMedium" />
+        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="CharacterSpacing" Value="1" />
+    </Style>
+
+    <Style x:Key="FieldEntry" TargetType="Entry">
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="PlaceholderColor" Value="#66121430" />
+        <Setter Property="FontFamily" Value="SmaText" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="HeightRequest" Value="30" />
+        <Setter Property="Margin" Value="-4,-4,-4,-6" />
+    </Style>
+
+    <!-- Buttons -->
+
+    <Style x:Key="PillSolid" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource OnDark}" />
+        <Setter Property="TextColor" Value="#14162C" />
+        <Setter Property="FontFamily" Value="SmaMedium" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="CornerRadius" Value="26" />
+        <Setter Property="HeightRequest" Value="47" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
+    <Style x:Key="PillGhost" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource OnDark}" />
+        <Setter Property="FontFamily" Value="SmaMedium" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="CornerRadius" Value="26" />
+        <Setter Property="HeightRequest" Value="47" />
+        <Setter Property="BorderWidth" Value="1.4" />
+        <Setter Property="BorderColor" Value="#9EFFFFFF" />
+    </Style>
+
+    <!-- The back chevron, identical on every screen that has one. -->
+    <Style x:Key="BackGlyph" TargetType="Label">
+        <Setter Property="Text" Value="&#x2190;" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="Padding" Value="2,0,16,10" />
+    </Style>
+
+</ResourceDictionary>
+

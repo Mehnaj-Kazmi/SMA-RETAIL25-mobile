@@ -63,6 +63,20 @@ public sealed record TrolleyClaim(
 /// <summary>Credentials for the live connection. Single-use, sixty seconds.</summary>
 public sealed record ShopperHubTicket(string Ticket, int ExpiresInSeconds, long CartId);
 
+/// <summary>A tag the shop refused, with the reason a person can act on.</summary>
+public sealed record RefusedTag(string Epc, string Reason, string Message);
+
+/// <summary>
+/// What became of a scan batch: the refreshed cart when anything was accepted, and every refusal
+/// with its reason. Nothing is silently dropped — an item that fails to appear on the bill is an
+/// argument at the exit gate.
+/// </summary>
+public sealed record TagBatchOutcome(
+    Cart? Cart,
+    IReadOnlyList<CartLine> Accepted,
+    IReadOnlyList<RefusedTag> Rejected,
+    int Considered);
+
 /// <summary>One past visit, as the previous-sales screen lists it.</summary>
 public sealed record ShopperSale(
     long SaleId,
@@ -312,6 +326,22 @@ public sealed class ShopperApi
     /// </summary>
     public Task<ApiResult<TrolleyClaim>> ClaimTrolleyAsync(string code, CancellationToken ct = default)
         => PostAsync<TrolleyClaim>("api/v1/shopper/trolleys/claim", new { code }, ct, authenticated: true);
+
+    /// <summary>
+    /// Tags this handheld read, applied to the basket. Bare EPCs — the server synthesizes the read
+    /// facts, because a handheld pressed against an item has no meaningful antenna number or RSSI.
+    /// </summary>
+    public Task<ApiResult<TagBatchOutcome>> SubmitTagsAsync(IReadOnlyList<string> epcs, CancellationToken ct = default)
+        => PostAsync<TagBatchOutcome>("api/v1/shopper/cart/tags", new { epcs }, ct, authenticated: true);
+
+    /// <summary>Takes one line back out of the basket. The tag becomes sellable again.</summary>
+    public Task<ApiResult<TrolleyClaim>> RemoveLineAsync(int sequence, CancellationToken ct = default)
+        => SendAsync<TrolleyClaim>(
+            HttpMethod.Delete,
+            $"api/v1/shopper/cart/lines/{sequence}",
+            null,
+            ct,
+            authenticated: true);
 
     /// <summary>This shopper's own past visits, newest first.</summary>
     public Task<ApiResult<IReadOnlyList<ShopperSale>>> GetPreviousSalesAsync(CancellationToken ct = default)

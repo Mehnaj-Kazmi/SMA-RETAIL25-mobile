@@ -123,6 +123,15 @@ public partial class CartPage : ContentPage, IQueryAttributable
 
         for (var i = lines.Count - 1; i >= 0; i--)
         {
+            // Deduplicated by sequence, because a line can arrive twice: once in the HTTP response
+            // to this handheld's own scan — drawn immediately, the customer is watching — and again
+            // when the hub broadcasts the same mutation to everyone watching the cart, this phone
+            // included. Sequence is unique within the cart, so seen-once is exactly one check.
+            if (_rows.Any(r => r.Sequence == lines[i].Sequence))
+            {
+                continue;
+            }
+
             _rows.Insert(0, ToRow(lines[i], fresh: true));
         }
 
@@ -194,6 +203,83 @@ public partial class CartPage : ContentPage, IQueryAttributable
 
     private static string Money(decimal value)
         => value.ToString("N2", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// A tag from the scan bar goes to the shop. What comes back is either lines on the bill —
+    /// which the live feed will also deliver, but drawing from the response is immediate — or a
+    /// refusal with its reason. Silence is never an outcome.
+    /// </summary>
+    private async void OnScanTag(object? sender, EventArgs e)
+    {
+        var epc = TagEntry.Text?.Trim();
+
+        if (string.IsNullOrWhiteSpace(epc))
+        {
+            return;
+        }
+
+        ScanButton.IsEnabled = false;
+
+        var outcome = await _api.SubmitTagsAsync([epc]);
+
+        ScanButton.IsEnabled = true;
+
+        if (!outcome.Ok || outcome.Value is null)
+        {
+            OnTagRejected(new RejectedTag(epc, "error", outcome.Message ?? "The shop could not read that tag."));
+            return;
+        }
+
+        TagEntry.Text = string.Empty;
+
+        // Drawn from the response for immediacy; the hub will echo the same lines back and
+        // OnLinesAdded drops them by sequence, so nothing appears twice.
+        if (outcome.Value.Cart is { } cart)
+        {
+            ShowCart(cart);
+            RejectBanner.IsVisible = false;
+        }
+
+        foreach (var refusal in outcome.Value.Rejected)
+        {
+            OnTagRejected(new RejectedTag(refusal.Epc, refusal.Reason, refusal.Message));
+        }
+    }
+
+    /// <summary>
+    /// The customer puts an item back. Confirmed first — a mis-tap through a trolley handle should
+    /// not silently shrink the bill — then the whole refreshed cart is drawn from the response, and
+    /// the counter's screen catches up over the same broadcast every mutation sends.
+    /// </summary>
+    private async void OnRemoveLine(object? sender, TappedEventArgs e)
+    {
+        if (e.Parameter is not LineRow row)
+        {
+            return;
+        }
+
+        var confirmed = await DisplayAlertAsync(
+            "Put this item back?",
+            $"{row.Name} comes off your bill. Put it back on the shelf.",
+            "Remove",
+            "Keep");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var result = await _api.RemoveLineAsync(row.Sequence);
+
+        if (!result.Ok || result.Value?.Cart is null)
+        {
+            OnTagRejected(new RejectedTag(string.Empty, "error", result.Message ?? "Could not remove that item."));
+            return;
+        }
+
+        ShowCart(result.Value.Cart);
+        RejectBanner.IsVisible = false;
+    }
 
     private async void OnPay(object? sender, EventArgs e)
         => await DisplayAlertAsync("Not built yet", "Paying from the phone is the next piece.", "OK");

@@ -79,7 +79,7 @@
                             StrokeShape="RoundRectangle 11"
                             Padding="11,9"
                             Margin="0,0,0,5">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                             <VerticalStackLayout Grid.Column="0" Spacing="2">
                                 <Label Text="{Binding Flag}"
                                        IsVisible="{Binding IsFresh}"
@@ -97,6 +97,23 @@
                                    FontFamily="SmaBold"
                                    FontSize="12.5"
                                    VerticalOptions="Center" />
+
+                            <!--
+                                Remove, per line, always visible. A swipe gesture would be tidier but
+                                is undiscoverable through a trolley handle with one gloved thumb; a
+                                visible target is how an item actually gets put back.
+                            -->
+                            <Border Grid.Column="2"
+                                    BackgroundColor="#F3E9E9"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 999"
+                                    Padding="10,6"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnRemoveLine" CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="✕" TextColor="#A03B3B" FontFamily="SmaMedium" FontSize="11" />
+                            </Border>
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -105,6 +122,40 @@
 
         <!-- Totals + action -->
         <VerticalStackLayout Grid.Row="2" Padding="18,12,18,20" Spacing="4" BackgroundColor="#F5F6FA">
+
+            <!--
+                The handheld's scan bar. With the C72's UHF module wired this becomes a single Scan
+                button driving the reader; until Chainway's SDK is on the build, the tag number is
+                typed or wedge-scanned into the field. Same server path either way.
+            -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,6">
+                <Border Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E2E4EE"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10">
+                    <Entry x:Name="TagEntry"
+                           Placeholder="Scan or type a tag number"
+                           TextColor="#12142A"
+                           PlaceholderColor="#9EA2B8"
+                           FontFamily="SmaText"
+                           FontSize="11"
+                           Margin="10,0"
+                           ReturnType="Done"
+                           Completed="OnScanTag" />
+                </Border>
+
+                <Button Grid.Column="1"
+                        x:Name="ScanButton"
+                        Text="Add"
+                        BackgroundColor="#4C4F94"
+                        TextColor="White"
+                        FontFamily="SmaMedium"
+                        FontSize="11"
+                        CornerRadius="10"
+                        HeightRequest="38"
+                        Clicked="OnScanTag" />
+            </Grid>
 
             <!--
                 A tag the reader saw and refused. Shown, never swallowed: an item that silently fails

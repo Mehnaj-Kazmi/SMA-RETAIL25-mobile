@@ -232,7 +232,20 @@ public sealed class ShopperApi
     {
         _http = new HttpClient
         {
-            BaseAddress = new Uri(ApiSettings.BaseUrl, UriKind.Absolute),
+            // The trailing slash is load-bearing, and its absence is silent.
+            //
+            // Uri treats the last segment of a base address as a file unless it ends in a slash, and
+            // replaces it when a relative path is combined. So a base of
+            // "https://pos.sma-techno.net/backend" plus "api/v1/shopper/account/sign-in" resolves to
+            // "https://pos.sma-techno.net/api/v1/..." — the /backend sub-application dropped. That URL
+            // is served by the front end, which answers 404, and the app reports "the server does not
+            // have that endpoint", which sends you looking at the server for a fault that is here.
+            //
+            // It cost nothing while the API was a bare origin on a laptop, because there was no path
+            // segment to lose. Moving to a hosted sub-application is what made it break, and the
+            // normalisation is done here rather than in the constant so a base URL typed into
+            // Preferences at runtime cannot reintroduce it.
+            BaseAddress = new Uri(ApiSettings.BaseUrl.TrimEnd('/') + "/", UriKind.Absolute),
 
             // Short. A shopper standing at a trolley will decide the app is broken long before a
             // default hundred-second timeout expires, and would rather be told to try again.

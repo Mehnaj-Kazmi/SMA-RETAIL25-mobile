@@ -50,20 +50,17 @@ public partial class PairTrolleyPage : ContentPage
     {
         base.OnAppearing();
 
-        // The keyboard is the point of this screen, so it opens with the field already focused. The
-        // small delay is not superstition: focusing during the appearing transition is dropped on
-        // Android, and the shopper is left tapping at boxes that look like inputs and are not.
+        // No automatic keyboard, and this was arrived at the hard way.
         //
-        // Only when there is something to type, though. A shopper still on a counter arrives with
-        // the code already filled in below, and opening a keyboard over the Connect button they came
-        // here to press is worse than no keyboard at all.
-        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(350), () =>
-        {
-            if ((CodeEntry.Text?.Length ?? 0) < CodeLength)
-            {
-                CodeEntry.Focus();
-            }
-        });
+        // Opening it on appearing saves the shopper one tap and costs them the three buttons it
+        // draws itself over — including Connect, the one most of them want. Making that conditional
+        // on the field being empty does not fix it: the counter code arrives from the server, the
+        // focus was scheduled before that reply, and whenever the network is the slower of the two
+        // the keyboard opens after the code has landed. A race decided by latency is not a design.
+        //
+        // So the shopper taps the digit boxes when they want to type — OnFocusCode opens the
+        // keyboard then — and it closes itself on the third digit. The buttons are always reachable,
+        // which matters more on this screen than saving a tap.
 
         // Say up front where they already are.
         //

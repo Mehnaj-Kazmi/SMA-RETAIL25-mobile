@@ -184,7 +184,6 @@ public partial class CartPage : ContentPage, IQueryAttributable
         TaxLabel.Text = Money(totals.Tax1Total + totals.Tax2Total);
 
         CountLabel.Text = totals.ItemCount == 1 ? "1 item" : $"{totals.ItemCount} items";
-        PayButton.Text = totals.GrandTotal > 0 ? $"Pay {Money(totals.GrandTotal)}" : "Pay";
     }
 
     private void OnTagRejected(RejectedTag rejected)
@@ -418,9 +417,6 @@ public partial class CartPage : ContentPage, IQueryAttributable
         ShowCart(result.Value.Cart);
         RejectBanner.IsVisible = false;
     }
-
-    private async void OnPay(object? sender, EventArgs e)
-        => await DisplayAlertAsync("Not built yet", "Paying from the phone is the next piece.", "OK");
 
     /// <summary>
     /// Pushed rather than replacing this screen, so the live connection behind the basket is never

@@ -182,57 +182,58 @@
                 <Label Grid.Column="1" x:Name="GrandTotalLabel" Text="0.00" TextColor="#12142A" FontFamily="SmaBold" FontSize="12.5" />
             </Grid>
 
-            <Button x:Name="PayButton"
-                    Text="Pay"
-                    BackgroundColor="#1D2050"
-                    TextColor="White"
-                    FontFamily="SmaMedium"
-                    FontSize="11.5"
-                    CornerRadius="18"
-                    HeightRequest="38"
-                    Clicked="OnPay" />
-
             <!--
-                The only other screen a customer can reach. Placed here rather than in a navigation
-                bar because this app has two screens, and a bar drawn for two entries costs more room
-                than it saves on a phone held one-handed in an aisle.
+                The three ways off this screen, on one line.
+
+                Stacked, they cost three rows of a screen whose job is showing the bill — and none of
+                them is a thing a shopper does often enough to earn that. Side by side they read as
+                what they are: the exits, not the task.
+
+                Pay is deliberately not among them. It was drawn as the primary button on every
+                previous build and did nothing when pressed, which is worse than absent: a customer
+                who has scanned a basket and pressed Pay believes they have paid. It comes back when
+                there is a tender behind it.
+
+                Coloured by consequence rather than uniformly — red for the one that empties the
+                bill, grey for the one that ends the trip, brand for the one that only navigates.
             -->
-            <!--
-                Undo for a bad sweep. A trigger held a moment too long takes in the shelf behind the
-                item, and removing thirty lines one at a time is thirty confirmations — long enough
-                that a shopper hands the handheld to staff instead, which is the queue this whole
-                feature exists to remove.
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6" Margin="0,4,0,0">
 
-                Red text, no fill: destructive enough to warrant the colour, not important enough to
-                compete with Pay for the eye.
-            -->
-            <Button x:Name="ClearAllButton"
-                    Text="Empty Basket"
-                    BackgroundColor="Transparent"
-                    TextColor="#A03B3B"
-                    FontFamily="SmaMedium"
-                    FontSize="10.5"
-                    BorderWidth="0"
-                    HeightRequest="27"
-                    Clicked="OnClearAll" />
+                <Button Grid.Column="0"
+                        x:Name="ClearAllButton"
+                        Text="Empty Basket"
+                        BackgroundColor="Transparent"
+                        TextColor="#A03B3B"
+                        FontFamily="SmaMedium"
+                        FontSize="10"
+                        BorderWidth="0"
+                        Padding="0"
+                        HeightRequest="30"
+                        Clicked="OnClearAll" />
 
-            <Button Text="Previous Purchases"
-                    BackgroundColor="Transparent"
-                    TextColor="#4C4F94"
-                    FontFamily="SmaMedium"
-                    FontSize="10.5"
-                    BorderWidth="0"
-                    HeightRequest="27"
-                    Clicked="OnPreviousSales" />
+                <Button Grid.Column="1"
+                        Text="Previous"
+                        BackgroundColor="Transparent"
+                        TextColor="#4C4F94"
+                        FontFamily="SmaMedium"
+                        FontSize="10"
+                        BorderWidth="0"
+                        Padding="0"
+                        HeightRequest="30"
+                        Clicked="OnPreviousSales" />
 
-            <Button Text="Leave This Counter"
-                    BackgroundColor="Transparent"
-                    TextColor="#6C7089"
-                    FontFamily="SmaText"
-                    FontSize="11"
-                    BorderWidth="0"
-                    HeightRequest="27"
-                    Clicked="OnLeave" />
+                <Button Grid.Column="2"
+                        Text="Leave Counter"
+                        BackgroundColor="Transparent"
+                        TextColor="#6C7089"
+                        FontFamily="SmaText"
+                        FontSize="10"
+                        BorderWidth="0"
+                        Padding="0"
+                        HeightRequest="30"
+                        Clicked="OnLeave" />
+
+            </Grid>
 
         </VerticalStackLayout>
 

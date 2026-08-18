@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Trims Chainway's SDK down to the part this app uses.
+
+  DeviceAPI.aar is a single library covering Chainway's whole handheld range, so it carries bindings
+  for hardware the C72 does not have: Honeywell and Zebra barcode engines, Datalogic, and the
+  Qualcomm-variant internals for models built on that chipset. Generating C# for all of it fails to
+  compile — those classes reference Java types that are not in the .aar at all, which surfaces as
+  CS0426 and CS0535 in generated code nobody wrote and nobody calls.
+
+  Removing them is not a workaround for a bad library; it is saying which device this app runs on.
+  What remains is com.rscja.deviceapi.RFIDWithUHFUART and its UHFTAGInfo, which is the entire
+  surface ChainwayTagScanner touches.
+
+  If a future handset needs one of these back, delete the matching line rather than the file — each
+  one is a separate decision.
+-->
+<metadata>
+
+  <!-- Honeywell imaging engine. Not fitted to the C72. -->
+  <remove-node path="/api/package[@name='com.hsm.barcode']" />
+  <remove-node path="/api/package[@name='com.hsm.barcode.devicemanager']" />
+
+  <!-- Zebra/Symbol decoder. Not fitted. -->
+  <remove-node path="/api/package[@name='com.zebra.adc.decoder']" />
+
+  <!-- Datalogic engine, and the imagealgorithmlab camera decoder it depends on. -->
+  <remove-node path="/api/package[@name='com.datalogic.iptech.evl']" />
+  <remove-node path="/api/package[@name='com.imagealgorithmlab.barcode']" />
+  <remove-node path="/api/package[@name='com.imagealgorithmlab.barcode.camera']" />
+
+  <!--
+    The Qualcomm-variant implementation. The C72 is MediaTek, so this half of the SDK is the wrong
+    branch for this device; its USB and protocol-parse types reference callbacks that were never
+    shipped in the .aar.
+  -->
+  <remove-node path="/api/package[starts-with(@name,'com.rscja.team.qcom')]" />
+
+  <!--
+    A vendor-custom UHF variant whose inventory callback takes an obfuscated parameter type
+    ('UHFCSYX.a') that the binder cannot express. Nothing here uses it.
+  -->
+  <remove-node path="/api/package[@name='com.rscja.custom']" />
+  <remove-node path="/api/package[@name='com.rscja.custom.interfaces']" />
+
+</metadata>

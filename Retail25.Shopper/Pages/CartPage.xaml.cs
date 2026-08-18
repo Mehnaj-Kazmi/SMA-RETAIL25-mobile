@@ -34,8 +34,23 @@ public partial class CartPage : ContentPage, IQueryAttributable
     private readonly ShopperApi _api = new();
     private readonly LiveCart _live;
 
+    /// <summary>
+    /// The handheld's reader where there is one, and a scanner that finds nothing where there is
+    /// not — an ordinary phone, or the emulator. The cart screen does not branch on which: the
+    /// trigger simply never fires without hardware, and the typed box stays the way in.
+    /// </summary>
+    private readonly ITagScanner _scanner =
+#if ANDROID
+        new Platforms.Android.ChainwayTagScanner();
+#else
+        new NullTagScanner();
+#endif
+
     private string _counterCode = string.Empty;
     private long _cartId;
+
+    /// <summary>Guards against a second sweep starting while one is still running.</summary>
+    private bool _scanning;
 
     public CartPage()
     {
@@ -64,6 +79,18 @@ public partial class CartPage : ContentPage, IQueryAttributable
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // Only this screen answers the trigger, and only while it is in front. Subscribing for the
+        // app's lifetime would fire a sweep against a cart the shopper has already left.
+#if ANDROID
+        MainActivity.TriggerPulled += OnTriggerPulled;
+#endif
+
+        // The placeholder says what the hardware can actually do, so a customer holding a handheld
+        // is not told to type a number they are standing in front of a reader for.
+        TagEntry.Placeholder = _scanner.IsAvailable
+            ? "Pull the trigger, or type a tag number"
+            : "Scan or type a tag number";
 
         CounterLabel.Text = _counterCode.Length > 0
             ? $"COUNTER {_counterCode}"
@@ -94,6 +121,10 @@ public partial class CartPage : ContentPage, IQueryAttributable
     protected override async void OnDisappearing()
     {
         base.OnDisappearing();
+
+#if ANDROID
+        MainActivity.TriggerPulled -= OnTriggerPulled;
+#endif
 
         // Closed rather than left open in the background. A socket held by a screen nobody is looking
         // at is a socket the server is paying to keep alive.
@@ -209,6 +240,49 @@ public partial class CartPage : ContentPage, IQueryAttributable
     /// which the live feed will also deliver, but drawing from the response is immediate — or a
     /// refusal with its reason. Silence is never an outcome.
     /// </summary>
+    /// <summary>
+    /// The handheld's trigger. Sweeps the field and sends whatever it found.
+    /// <para>
+    /// A sweep, not a single read: the whole reason for UHF over a barcode is that a basket is one
+    /// pull of the trigger rather than one per item. One item held to the antenna is the same code
+    /// path returning a list of one.
+    /// </para>
+    /// </summary>
+    private async void OnTriggerPulled()
+    {
+        if (_scanning || !_scanner.IsAvailable)
+        {
+            return;
+        }
+
+        _scanning = true;
+
+        try
+        {
+            await MainThread.InvokeOnMainThreadAsync(() => ScanButton.Text = "Reading…");
+
+            var epcs = await _scanner.SweepAsync(TimeSpan.FromSeconds(1.5));
+
+            await MainThread.InvokeOnMainThreadAsync(() => ScanButton.Text = "Add");
+
+            if (epcs.Count == 0)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() => OnTagRejected(new RejectedTag(
+                    string.Empty,
+                    "reader.nothing_in_range",
+                    "Nothing in range — hold the handheld closer and pull the trigger again.")));
+
+                return;
+            }
+
+            await SubmitAsync([.. epcs]);
+        }
+        finally
+        {
+            _scanning = false;
+        }
+    }
+
     private async void OnScanTag(object? sender, EventArgs e)
     {
         var epc = TagEntry.Text?.Trim();
@@ -218,9 +292,20 @@ public partial class CartPage : ContentPage, IQueryAttributable
             return;
         }
 
+        await SubmitAsync([epc]);
+    }
+
+    /// <summary>
+    /// Sends tags to the shop and shows what came back. Shared by the trigger and the typed box,
+    /// because past the point where the number was obtained they are the same operation.
+    /// </summary>
+    private async Task SubmitAsync(string[] epcs)
+    {
+        var epc = epcs[0];
+
         ScanButton.IsEnabled = false;
 
-        var outcome = await _api.SubmitTagsAsync([epc]);
+        var outcome = await _api.SubmitTagsAsync(epcs);
 
         ScanButton.IsEnabled = true;
 

@@ -1,6 +1,7 @@
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Android.Views;
 using AndroidX.Core.View;
 
 namespace Retail25.Shopper;
@@ -43,4 +44,45 @@ public class MainActivity : MauiAppCompatActivity
             bars.AppearanceLightNavigationBars = false;
         }
     }
+
+    /// <summary>
+    /// Raised when the handheld's scan trigger is pulled. The cart screen listens.
+    /// <para>
+    /// An event rather than a service call because the trigger is a fact about the device, not about
+    /// whatever screen happens to be open: only the screen that can act on it subscribes, and it is
+    /// silently ignored everywhere else, which is what the physical button should do on a sign-in
+    /// page.
+    /// </para>
+    /// </summary>
+    public static event Action? TriggerPulled;
+
+    /// <summary>
+    /// The two scan keys on Chainway's handhelds.
+    /// <para>
+    /// 139 and 280 are what the C72 reports for its side and front triggers, taken from the vendor's
+    /// own UHF demo rather than guessed. They are outside Android's documented KeyEvent range, which
+    /// is why they are written as numbers here — there is no framework constant to name them by.
+    /// </para>
+    /// </summary>
+    private static bool IsScanTrigger(Keycode keyCode) => (int)keyCode is 139 or 280;
+
+    public override bool OnKeyDown(Keycode keyCode, KeyEvent? e)
+    {
+        // RepeatCount: holding the trigger autorepeats, and each repeat would start another sweep on
+        // top of the one already running. Only the first press counts.
+        if (IsScanTrigger(keyCode) && e?.RepeatCount == 0)
+        {
+            TriggerPulled?.Invoke();
+            return true;
+        }
+
+        return base.OnKeyDown(keyCode, e);
+    }
+
+    /// <summary>
+    /// Swallowed so the key never reaches the focused control. Without this the trigger types a
+    /// character into whatever field has focus — including the scan box the sweep is about to fill.
+    /// </summary>
+    public override bool OnKeyUp(Keycode keyCode, KeyEvent? e)
+        => IsScanTrigger(keyCode) || base.OnKeyUp(keyCode, e);
 }

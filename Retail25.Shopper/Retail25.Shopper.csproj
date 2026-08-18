@@ -87,6 +87,42 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!--
+		Chainway's UHF SDK for the C72 handheld, bound straight from the vendor's .aar.
+
+		The radio is reachable no other way on this device, and that is a finding rather than an
+		assumption: the vendor's own scan service broadcasts barcode actions only, the platform
+		declares no shared library for the SDK, the UHF UART sits behind root-owned /dev/tty nodes,
+		and the handset is not rooted. So the jar is not a convenience — it is the only door.
+
+		Committed to the repository deliberately. It ships on the CD in the box rather than from any
+		public feed, so a clone that does not carry it cannot build the one feature the app exists
+		for, and "ask the reseller for a file" is not a restore procedure.
+
+		The .aar carries its own arm64-v8a/armeabi-v7a natives under jni/, which the Android build
+		unpacks into the APK; no separate .so wiring is needed.
+	-->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<!--
+			Bind="false" — packaged, not bound, and that is the considered choice rather than a
+			retreat.
+
+			This one .aar covers Chainway's entire handheld range: Honeywell and Zebra barcode
+			engines, Datalogic, Bluetooth and RS232 and network readers, and a parallel Qualcomm
+			implementation for models built on that chipset. Generating C# for all of it does not
+			compile — the unused branches reference Java types absent from the .aar (CS0426, CS0535)
+			and declare overloads that collide once projected into C# (CS0121). Suppressing them one
+			package at a time worked until the next model's interface surfaced, which is the signal
+			that the whole-library binding was the wrong shape for the problem.
+
+			This app needs five methods on one class. ChainwayTagScanner calls them through JNI
+			against signatures verified with javap, so nothing depends on the binder's opinion of
+			hardware this handset does not have. The .aar is still an AndroidLibrary, so its Java
+			classes and its jni/ natives are packaged into the APK exactly as before.
+		-->
+		<AndroidLibrary Include="Platforms\Android\Libs\DeviceAPI.aar" Bind="false" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />

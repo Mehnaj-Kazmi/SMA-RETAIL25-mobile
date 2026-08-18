@@ -190,6 +190,43 @@ public partial class PairTrolleyPage : ContentPage
         ConnectButton.Text = busy ? "Connectingâ€¦" : "Connect";
     }
 
+    /// <summary>
+    /// Takes whichever counter the shop has free, for a store where they are interchangeable.
+    /// <para>
+    /// Lands on the same cart screen as typing a number, because it is the same claim underneath —
+    /// the shop picks the code instead of the customer. A shopper already mid-trip gets that trip
+    /// back rather than a second counter, so this is safe to press twice.
+    /// </para>
+    /// </summary>
+    private async void OnAnyCounter(object? sender, EventArgs e)
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        AnyCounterButton.IsEnabled = false;
+        AnyCounterButton.Text = "Finding a counter…";
+
+        var result = await _api.StartSelfCheckoutAsync();
+
+        _busy = false;
+        AnyCounterButton.IsEnabled = true;
+        AnyCounterButton.Text = "Use Any Free Counter";
+
+        if (!result.Ok || result.Value is null)
+        {
+            StatusLabel.Text = result.Message ?? "No counter is free just now.";
+            StatusLabel.TextColor = Color.FromArgb("#FFE2E2");
+            return;
+        }
+
+        StatusLabel.TextColor = Color.FromArgb("#B8FFFFFF");
+
+        await Shell.Current.GoToAsync($"{nameof(CartPage)}?code={result.Value.TrolleyCode}");
+    }
+
     private async void OnScanQr(object? sender, EventArgs e)
         => await DisplayAlertAsync("Not built yet", "Scanning the trolley's QR code is still to come.", "OK");
 

@@ -99,6 +99,16 @@
                     IsEnabled="False"
                     Clicked="OnConnect" />
 
+            <!--
+                For a shop where the counters really are interchangeable. Kept second and quieter
+                than Connect: where a reader is bolted to a counter, being handed a different one is
+                the wrong answer, so choosing stays the obvious path and this is the shortcut.
+            -->
+            <Button x:Name="AnyCounterButton"
+                    Text="Use Any Free Counter"
+                    Style="{StaticResource PillGhost}"
+                    Clicked="OnAnyCounter" />
+
             <Button Text="Scan QR Instead"
                     Style="{StaticResource PillGhost}"
                     Clicked="OnScanQr" />

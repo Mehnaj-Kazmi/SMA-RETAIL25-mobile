@@ -73,30 +73,18 @@ public partial class SignInPage : ContentPage
     }
 
     /// <summary>
-    /// Gets the shopper onto a self-checkout counter and through to their basket.
+    /// Hands over to the counter screen, where the shopper says which counter they are standing at.
     /// <para>
-    /// The counter is issued by the shop, not chosen by the customer — signing in is the whole
-    /// interaction. It is done here rather than on the cart screen because a failure has to land
-    /// somewhere the shopper can act on it; a cart screen with no counter behind it has nothing to
-    /// show and nothing to press.
+    /// Signing in no longer picks a counter on the customer's behalf. Being issued one silently is
+    /// fine only while every counter is interchangeable, and they are not: the RFID reader is bolted
+    /// to a particular counter, so a shopper standing at 307 who is handed 305 watches a basket
+    /// filling somewhere else in the shop. Choosing is one screen and removes the whole class of
+    /// problem — with "give me any free one" still on that screen for a shop where it genuinely does
+    /// not matter.
     /// </para>
     /// </summary>
     private async Task OpenCounterAsync()
-    {
-        SetBusy(true, "Opening a counter…");
-
-        var counter = await _api.StartSelfCheckoutAsync();
-
-        SetBusy(false, "Sign In");
-
-        if (!counter.Ok || counter.Value is null)
-        {
-            ShowError(counter.Message ?? "Could not open a self-checkout counter for you.");
-            return;
-        }
-
-        await Shell.Current.GoToAsync($"{nameof(CartPage)}?code={counter.Value.TrolleyCode}");
-    }
+        => await Shell.Current.GoToAsync(nameof(PairTrolleyPage));
 
     private async void OnForgotPassword(object? sender, EventArgs e)
         => await DisplayAlertAsync("Not built yet", "Password recovery is still to come.", "OK");

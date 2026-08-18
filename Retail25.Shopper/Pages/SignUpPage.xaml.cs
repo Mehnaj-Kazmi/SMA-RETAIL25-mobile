@@ -69,21 +69,9 @@ public partial class SignUpPage : ContentPage
 
         ErrorLabel.IsVisible = false;
 
-        // Self-checkout: the shop issues the counter. A new customer goes from "create account"
-        // straight to a basket without being asked for a number they have no way of knowing.
-        SetBusy(true);
-
-        var counter = await _api.StartSelfCheckoutAsync();
-
-        SetBusy(false);
-
-        if (!counter.Ok || counter.Value is null)
-        {
-            ShowError(counter.Message ?? "Could not open a self-checkout counter for you.");
-            return;
-        }
-
-        await Shell.Current.GoToAsync($"{nameof(CartPage)}?code={counter.Value.TrolleyCode}");
+        // On to the counter screen rather than straight to a basket: the customer says which counter
+        // they are standing at, because the reader is bolted to one. See SignInPage.OpenCounterAsync.
+        await Shell.Current.GoToAsync(nameof(PairTrolleyPage));
     }
 
     private void SetBusy(bool busy)

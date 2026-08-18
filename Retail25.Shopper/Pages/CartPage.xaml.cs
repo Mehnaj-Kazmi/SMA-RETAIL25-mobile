@@ -129,6 +129,12 @@ public partial class CartPage : ContentPage, IQueryAttributable
         MainActivity.TriggerPulled -= OnTriggerPulled;
 #endif
 
+        // Hand the radio back. Left claimed, the next launch finds the UART held by a process that
+        // may no longer exist and init() fails — which is recoverable now, but only because this was
+        // missing once and cost an afternoon of "the device has no tag reader" on a device that
+        // plainly had one.
+        (_scanner as IDisposable)?.Dispose();
+
         // Closed rather than left open in the background. A socket held by a screen nobody is looking
         // at is a socket the server is paying to keep alive.
         await _live.StopAsync();
@@ -255,18 +261,6 @@ public partial class CartPage : ContentPage, IQueryAttributable
             return;
         }
 
-        // Said out loud rather than silently doing nothing. A button that responds to nothing is
-        // read as a broken app, and on a device with no radio that is the only honest answer.
-        if (!_scanner.IsAvailable)
-        {
-            OnTagRejected(new RejectedTag(
-                string.Empty,
-                "reader.unavailable",
-                "This device has no tag reader. Use a store handheld to scan items."));
-
-            return;
-        }
-
         _scanning = true;
 
         try
@@ -287,10 +281,18 @@ public partial class CartPage : ContentPage, IQueryAttributable
 
             if (epcs.Count == 0)
             {
-                await MainThread.InvokeOnMainThreadAsync(() => OnTagRejected(new RejectedTag(
-                    string.Empty,
-                    "reader.nothing_in_range",
-                    "Nothing in range — hold the handheld closer and pull the trigger again.")));
+                // Told apart after the attempt, never before it. Deciding up front that the device
+                // has no reader is how a handheld whose module simply needed a moment ends up
+                // telling the person holding it to go and find a different one.
+                var (title, detail) = _scanner.IsAvailable
+                    ? ("reader.nothing_in_range", "Nothing in range — hold the handheld closer to the item and scan again.")
+                    : ("reader.unavailable", "The tag reader did not start. Scan again, or restart the app if it keeps failing.");
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnTagRejected(new RejectedTag(string.Empty, title, detail));
+                    _feedback.Refused();
+                });
 
                 return;
             }

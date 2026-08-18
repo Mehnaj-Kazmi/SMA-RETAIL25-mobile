@@ -44,20 +44,19 @@ public sealed class ChainwayTagScanner : ITagScanner, IDisposable
 
     private IntPtr _reader;
     private bool _initialised;
-    private bool _unavailable;
 
-    public bool IsAvailable
-    {
-        get
-        {
-            EnsureReader();
-            return _initialised;
-        }
-    }
+    /// <summary>
+    /// Whether the radio is up. Reports what is known now and never itself provokes a connection
+    /// attempt: a getter that blocks on UART initialisation is a getter that freezes the UI thread
+    /// when the module is slow, which is exactly when somebody is looking at the screen.
+    /// </summary>
+    public bool IsAvailable => _initialised;
 
     public async Task<IReadOnlyList<string>> SweepAsync(TimeSpan window, CancellationToken ct = default)
     {
-        EnsureReader();
+        // Off the UI thread. Bringing the UART up takes the better part of a second on this module,
+        // and the vendor's own demo does it on a background task for the same reason.
+        await Task.Run(EnsureReader, ct).ConfigureAwait(false);
 
         if (!_initialised)
         {
@@ -144,40 +143,84 @@ public sealed class ChainwayTagScanner : ITagScanner, IDisposable
     {
         lock (_gate)
         {
-            if (_initialised || _unavailable)
+            if (_initialised)
             {
                 return;
             }
 
             try
             {
-                var readerClass = JNIEnv.FindClass(ReaderClass);
-                var getInstance = JNIEnv.GetStaticMethodID(readerClass, "getInstance", $"()L{ReaderClass};");
-                var instance = JNIEnv.CallStaticObjectMethod(readerClass, getInstance);
-
-                if (instance == IntPtr.Zero)
+                if (_reader == IntPtr.Zero)
                 {
-                    _unavailable = true;
+                    var readerClass = JNIEnv.FindClass(ReaderClass);
+                    var getInstance = JNIEnv.GetStaticMethodID(readerClass, "getInstance", $"()L{ReaderClass};");
+                    var instance = JNIEnv.CallStaticObjectMethod(readerClass, getInstance);
+
+                    if (instance == IntPtr.Zero)
+                    {
+                        return;
+                    }
+
+                    // A global reference: this handle outlives the call that made it, and a local
+                    // ref is void the moment control returns to Java.
+                    _reader = JNIEnv.NewGlobalRef(instance);
+                    JNIEnv.DeleteLocalRef(instance);
+                }
+
+                if (TryInit())
+                {
+                    _initialised = true;
                     return;
                 }
 
-                // A global reference: this handle outlives the call that made it, and a local ref
-                // is void the moment control returns to Java.
-                _reader = JNIEnv.NewGlobalRef(instance);
-                JNIEnv.DeleteLocalRef(instance);
+                // Failed. The usual cause is the module still being held from a previous run: the
+                // app was force-stopped or crashed, so free() never ran and the UART is claimed by a
+                // process that no longer exists. Releasing it first is what makes this recoverable
+                // without rebooting the handset — which is otherwise the only cure, and not one you
+                // can ask a shop to apply mid-shift.
+                CallBool(_reader, ReaderClass, "free");
+                Thread.Sleep(300);
 
-                var init = JNIEnv.GetMethodID(readerClass, "init", "(Landroid/content/Context;)Z");
-                var context = global::Android.App.Application.Context.Handle;
-
-                _initialised = JNIEnv.CallBooleanMethod(_reader, init, new JValue(context));
-                _unavailable = !_initialised;
+                _initialised = TryInit();
             }
             catch (Exception)
             {
-                // No reader on this device, or the SDK could not load its natives.
-                _unavailable = true;
+                // No reader on this device, or the SDK could not load its natives. Not latched: the
+                // next trigger pull tries again, because the reason can be temporary and a scanner
+                // that gives up permanently on one bad start is a scanner somebody reboots.
                 _initialised = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Brings the module up, preferring the overload the vendor's own demo uses.
+    /// <para>
+    /// <c>init()</c> first and <c>init(Context)</c> only as a fallback: the demo shipped with this
+    /// SDK calls the no-argument form, and on this handset it is the one that works. They are not
+    /// aliases — the context overload exists for models where the SDK powers the radio through a
+    /// system service — so trying both costs one call and covers both wirings.
+    /// </para>
+    /// </summary>
+    private bool TryInit()
+    {
+        var readerClass = JNIEnv.FindClass(ReaderClass);
+
+        if (CallBool(_reader, ReaderClass, "init"))
+        {
+            return true;
+        }
+
+        try
+        {
+            var init = JNIEnv.GetMethodID(readerClass, "init", "(Landroid/content/Context;)Z");
+            var context = global::Android.App.Application.Context.Handle;
+
+            return JNIEnv.CallBooleanMethod(_reader, init, new JValue(context));
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 

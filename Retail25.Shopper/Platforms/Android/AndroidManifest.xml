@@ -3,4 +3,10 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<!--
+		The scan buzz. Granted at install with no prompt, and it is the half of the feedback that
+		cannot be silenced by a volume slider — a handheld spends its day in a shop where somebody has
+		turned the sound down, and a scan with no feedback is a scan the shopper repeats.
+	-->
+	<uses-permission android:name="android.permission.VIBRATE" />
 </manifest>

@@ -54,12 +54,21 @@ public partial class WelcomePage : ContentPage
         }
 
         var session = await _api.RefreshAsync(refreshToken);
-
         if (!session.Ok || session.Value is null)
         {
-            // Expired, revoked, or the device row was cleared by staff. Forget it rather than carry a
-            // credential that cannot work.
-            SessionStore.Forget();
+            // Forgotten only when the shop actually rejected the credential, never when it merely
+            // failed to answer.
+            //
+            // Treating every failure the same destroyed a perfectly good session on a network blip or
+            // a restart during a deploy — the customer was silently signed out and had to type a
+            // password to reach a basket they were standing next to. A refusal has a code from the
+            // server; "cannot reach the store server" has none, and the right response to that is to
+            // keep the token and let them try again.
+            if (session.Code is { Length: > 0 })
+            {
+                SessionStore.Forget();
+            }
+
             return;
         }
 

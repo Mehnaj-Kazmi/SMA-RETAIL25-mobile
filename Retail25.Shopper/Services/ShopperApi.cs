@@ -391,6 +391,53 @@ public sealed class ShopperApi
         CancellationToken ct,
         bool authenticated = false)
     {
+        var first = await SendOnceAsync<T>(method, path, body, ct, authenticated);
+
+        // A shopper's access token lasts fifteen minutes, which is shorter than a big shop. Without
+        // this, the customer is told to sign in again halfway round the aisles — holding a handheld
+        // full of scanned items and a refresh token that was issued precisely so they would not have
+        // to. One silent refresh and one retry turns an expiry into something nobody notices.
+        //
+        // Only for authenticated calls, only on a rejected token, and only once: a refresh that
+        // itself fails means the credential is genuinely dead, and retrying past that would loop.
+        if (!authenticated || first.Ok || !IsTokenRejection(first.Code))
+        {
+            return first;
+        }
+
+        var refreshToken = await SessionStore.ReadRefreshTokenAsync();
+
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return first;
+        }
+
+        var renewed = await RefreshAsync(refreshToken, ct);
+
+        if (!renewed.Ok || renewed.Value is null)
+        {
+            return first;
+        }
+
+        await SessionStore.AdoptAsync(renewed.Value);
+
+        return await SendOnceAsync<T>(method, path, body, ct, authenticated);
+    }
+
+    /// <summary>The server saying "this token is no longer good", as opposed to any other failure.</summary>
+    private static bool IsTokenRejection(string? code)
+        => code is "shopper.not_signed_in"
+            or "shopper_device.token_rejected"
+            or "shopper_device.not_recognised"
+            or "auth.session_expired";
+
+    private async Task<ApiResult<T>> SendOnceAsync<T>(
+        HttpMethod method,
+        string path,
+        object? body,
+        CancellationToken ct,
+        bool authenticated = false)
+    {
         try
         {
             using var request = new HttpRequestMessage(method, path);

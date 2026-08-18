@@ -22,3 +22,28 @@ public sealed class NullTagScanner : ITagScanner
     public Task<IReadOnlyList<string>> SweepAsync(TimeSpan window, CancellationToken ct = default)
         => Task.FromResult<IReadOnlyList<string>>([]);
 }
+
+/// <summary>
+/// The sound a scan makes. Two outcomes, two noises — see the Android implementation for why one
+/// would be useless.
+/// </summary>
+public interface IScanFeedback
+{
+    /// <summary>Items went on the bill.</summary>
+    void Accepted();
+
+    /// <summary>The shop refused the tag, or there was nothing in range.</summary>
+    void Refused();
+}
+
+/// <summary>Silence, for a platform with no tone generator.</summary>
+public sealed class NullScanFeedback : IScanFeedback
+{
+    public void Accepted()
+    {
+    }
+
+    public void Refused()
+    {
+    }
+}

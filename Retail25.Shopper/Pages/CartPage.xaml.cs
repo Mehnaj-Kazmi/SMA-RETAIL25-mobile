@@ -46,6 +46,14 @@ public partial class CartPage : ContentPage, IQueryAttributable
         new NullTagScanner();
 #endif
 
+    /// <summary>The beep. A shop floor is loud and nobody watches the screen while scanning.</summary>
+    private readonly IScanFeedback _feedback =
+#if ANDROID
+        new Platforms.Android.ScanFeedback();
+#else
+        new NullScanFeedback();
+#endif
+
     private string _counterCode = string.Empty;
     private long _cartId;
 
@@ -324,6 +332,56 @@ public partial class CartPage : ContentPage, IQueryAttributable
         {
             OnTagRejected(new RejectedTag(refusal.Epc, refusal.Reason, refusal.Message));
         }
+
+        // Judged on whether anything was actually accepted, not on the HTTP call succeeding. A sweep
+        // that reached the shop and had every tag refused is a failure to the person holding the
+        // handheld, and beeping "yes" at them would be the sound lying about the outcome.
+        if (outcome.Value.Accepted.Count > 0)
+        {
+            _feedback.Accepted();
+        }
+        else
+        {
+            _feedback.Refused();
+        }
+    }
+
+    /// <summary>
+    /// Empties the basket. Confirmed, and the confirmation names the count and the total, because
+    /// "clear everything" is only safe to answer when you can see what everything is.
+    /// </summary>
+    private async void OnClearAll(object? sender, EventArgs e)
+    {
+        if (_rows.Count == 0)
+        {
+            return;
+        }
+
+        var confirmed = await DisplayAlertAsync(
+            "Empty the basket?",
+            $"All {_rows.Count} item{(_rows.Count == 1 ? string.Empty : "s")} come off your bill — {GrandTotalLabel.Text}. Put them back on the shelf.",
+            "Empty it",
+            "Keep");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var outcome = await _api.ClearCartAsync();
+
+        if (!outcome.Ok || outcome.Value?.Cart is null)
+        {
+            OnTagRejected(new RejectedTag(
+                string.Empty,
+                "cart.not_cleared",
+                outcome.Message ?? "The basket could not be emptied."));
+
+            return;
+        }
+
+        ShowCart(outcome.Value.Cart);
+        RejectBanner.IsVisible = false;
     }
 
     /// <summary>

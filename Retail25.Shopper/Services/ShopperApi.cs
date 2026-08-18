@@ -343,6 +343,18 @@ public sealed class ShopperApi
             ct,
             authenticated: true);
 
+    /// <summary>
+    /// Empties the basket in one call. Every tag is released, so a sweep that caught a neighbouring
+    /// shelf can be undone without thirty confirmations.
+    /// </summary>
+    public Task<ApiResult<TrolleyClaim>> ClearCartAsync(CancellationToken ct = default)
+        => SendAsync<TrolleyClaim>(
+            HttpMethod.Delete,
+            "api/v1/shopper/cart/lines",
+            null,
+            ct,
+            authenticated: true);
+
     /// <summary>This shopper's own past visits, newest first.</summary>
     public Task<ApiResult<IReadOnlyList<ShopperSale>>> GetPreviousSalesAsync(CancellationToken ct = default)
         => SendAsync<IReadOnlyList<ShopperSale>>(

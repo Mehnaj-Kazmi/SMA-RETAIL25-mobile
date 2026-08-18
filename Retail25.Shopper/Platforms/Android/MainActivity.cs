@@ -57,20 +57,36 @@ public class MainActivity : MauiAppCompatActivity
     public static event Action? TriggerPulled;
 
     /// <summary>
-    /// The two scan keys on Chainway's handhelds.
+    /// The hardware scan code this handset's trigger sends.
     /// <para>
-    /// 139 and 280 are what the C72 reports for its side and front triggers, taken from the vendor's
-    /// own UHF demo rather than guessed. They are outside Android's documented KeyEvent range, which
-    /// is why they are written as numbers here — there is no framework constant to name them by.
+    /// Matched on the scan code rather than the key code, and that is the whole fix. The C72's
+    /// trigger is its own input device — <c>scan-key</c> on /dev/input/event0 — emitting Linux key
+    /// 0xBA (186). Android has no keylayout for that device, so it falls back to Generic.kl, where
+    /// 186 is labelled <c>F16</c>; and Android's KeyEvent stops at F12, so the label resolves to
+    /// nothing and the trigger arrives with no usable key code at all.
+    /// </para>
+    /// <para>
+    /// The scan code survives that, because it is the raw number from the driver and never passes
+    /// through the keylayout. 139 and 280 are kept alongside it: they come from the vendor's demo,
+    /// they work on other models in the range, and one of them is what an <c>adb keyevent</c> sends
+    /// when testing this path without the hardware.
     /// </para>
     /// </summary>
-    private static bool IsScanTrigger(Keycode keyCode) => (int)keyCode is 139 or 280;
+    private const int TriggerScanCode = 186;
+
+    private static bool IsScanTrigger(Keycode keyCode, KeyEvent? e)
+        => (int)keyCode is 139 or 280 || e?.ScanCode == TriggerScanCode;
 
     public override bool OnKeyDown(Keycode keyCode, KeyEvent? e)
     {
+        // Every key, once, while diagnosing a trigger that does not arrive. Cheap and quiet: a
+        // handheld sends a handful of key events an hour, and without it the only way to learn what
+        // the button emits is to rebuild with logging — which is how this bug was found.
+        Android.Util.Log.Info("Retail25.Trigger", $"keyCode={(int)keyCode} scanCode={e?.ScanCode} repeat={e?.RepeatCount}");
+
         // RepeatCount: holding the trigger autorepeats, and each repeat would start another sweep on
         // top of the one already running. Only the first press counts.
-        if (IsScanTrigger(keyCode) && e?.RepeatCount == 0)
+        if (IsScanTrigger(keyCode, e) && e?.RepeatCount == 0)
         {
             TriggerPulled?.Invoke();
             return true;
@@ -84,5 +100,5 @@ public class MainActivity : MauiAppCompatActivity
     /// character into whatever field has focus — including the scan box the sweep is about to fill.
     /// </summary>
     public override bool OnKeyUp(Keycode keyCode, KeyEvent? e)
-        => IsScanTrigger(keyCode) || base.OnKeyUp(keyCode, e);
+        => IsScanTrigger(keyCode, e) || base.OnKeyUp(keyCode, e);
 }

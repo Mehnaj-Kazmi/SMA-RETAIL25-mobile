@@ -77,7 +77,37 @@ public partial class PairTrolleyPage : ContentPage
         {
             CodeEntry.Text = connected;
             StatusLabel.Text = $"Still on counter {connected} — Connect resumes it, or type another number.";
+
+            // The focus above was scheduled before this lookup returned, so by the time the counter
+            // arrives the keyboard is already open over the button this shopper came to press. Close
+            // it now that there is nothing left to type.
+            DismissKeyboard();
         }
+    }
+
+    /// <summary>
+    /// Closes the soft keyboard, properly.
+    /// <para>
+    /// <c>Unfocus()</c> is not enough on Android: it drops the caret but leaves the keyboard on
+    /// screen, so the buttons stay covered and taps aimed at Connect land on number keys instead —
+    /// which reads as an app that has frozen. Found by logging key events on the handheld and seeing
+    /// a digit arrive from a tap meant for a button.
+    /// </para>
+    /// </summary>
+    private void DismissKeyboard()
+    {
+        CodeEntry.Unfocus();
+
+#if ANDROID
+        var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+        var token = activity?.CurrentFocus?.WindowToken;
+
+        if (activity?.GetSystemService(global::Android.Content.Context.InputMethodService)
+            is global::Android.Views.InputMethods.InputMethodManager manager && token is not null)
+        {
+            manager.HideSoftInputFromWindow(token, global::Android.Views.InputMethods.HideSoftInputFlags.None);
+        }
+#endif
     }
 
     private void OnFocusCode(object? sender, TappedEventArgs e) => CodeEntry.Focus();
@@ -107,7 +137,7 @@ public partial class PairTrolleyPage : ContentPage
         // which is exactly what happened when this was tested on the handheld.
         if (digits.Length == CodeLength)
         {
-            CodeEntry.Unfocus();
+            DismissKeyboard();
         }
     }
 

@@ -86,11 +86,6 @@ public partial class CartPage : ContentPage, IQueryAttributable
         MainActivity.TriggerPulled += OnTriggerPulled;
 #endif
 
-        // The placeholder says what the hardware can actually do, so a customer holding a handheld
-        // is not told to type a number they are standing in front of a reader for.
-        TagEntry.Placeholder = _scanner.IsAvailable
-            ? "Pull the trigger, or type a tag number"
-            : "Scan or type a tag number";
 
         CounterLabel.Text = _counterCode.Length > 0
             ? $"COUNTER {_counterCode}"
@@ -236,22 +231,32 @@ public partial class CartPage : ContentPage, IQueryAttributable
         => value.ToString("N2", CultureInfo.InvariantCulture);
 
     /// <summary>
-    /// A tag from the scan bar goes to the shop. What comes back is either lines on the bill —
-    /// which the live feed will also deliver, but drawing from the response is immediate — or a
-    /// refusal with its reason. Silence is never an outcome.
-    /// </summary>
-    /// <summary>
-    /// The handheld's trigger. Sweeps the field and sends whatever it found.
+    /// Reads whatever is in front of the antenna and puts it on the bill.
     /// <para>
-    /// A sweep, not a single read: the whole reason for UHF over a barcode is that a basket is one
-    /// pull of the trigger rather than one per item. One item held to the antenna is the same code
-    /// path returning a list of one.
+    /// Reached two ways that are the same thing: the on-screen button and the handheld's physical
+    /// trigger. A sweep rather than a single read, because the reason to use UHF over a barcode is
+    /// that a whole basket is one action — one item held to the antenna is this same code returning
+    /// a list of one.
     /// </para>
     /// </summary>
+    private void OnTapToScan(object? sender, EventArgs e) => OnTriggerPulled();
+
     private async void OnTriggerPulled()
     {
-        if (_scanning || !_scanner.IsAvailable)
+        if (_scanning)
         {
+            return;
+        }
+
+        // Said out loud rather than silently doing nothing. A button that responds to nothing is
+        // read as a broken app, and on a device with no radio that is the only honest answer.
+        if (!_scanner.IsAvailable)
+        {
+            OnTagRejected(new RejectedTag(
+                string.Empty,
+                "reader.unavailable",
+                "This device has no tag reader. Use a store handheld to scan items."));
+
             return;
         }
 
@@ -259,11 +264,19 @@ public partial class CartPage : ContentPage, IQueryAttributable
 
         try
         {
-            await MainThread.InvokeOnMainThreadAsync(() => ScanButton.Text = "Reading…");
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                TapToScanButton.Text = "READING…";
+                TapToScanButton.IsEnabled = false;
+            });
 
             var epcs = await _scanner.SweepAsync(TimeSpan.FromSeconds(1.5));
 
-            await MainThread.InvokeOnMainThreadAsync(() => ScanButton.Text = "Add");
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                TapToScanButton.Text = "TAP TO SCAN";
+                TapToScanButton.IsEnabled = true;
+            });
 
             if (epcs.Count == 0)
             {
@@ -283,39 +296,21 @@ public partial class CartPage : ContentPage, IQueryAttributable
         }
     }
 
-    private async void OnScanTag(object? sender, EventArgs e)
-    {
-        var epc = TagEntry.Text?.Trim();
-
-        if (string.IsNullOrWhiteSpace(epc))
-        {
-            return;
-        }
-
-        await SubmitAsync([epc]);
-    }
-
     /// <summary>
-    /// Sends tags to the shop and shows what came back. Shared by the trigger and the typed box,
-    /// because past the point where the number was obtained they are the same operation.
+    /// Sends the tags the reader found to the shop and shows what came back — lines on the bill, or
+    /// a refusal with its reason. Silence is never an outcome.
     /// </summary>
     private async Task SubmitAsync(string[] epcs)
     {
         var epc = epcs[0];
 
-        ScanButton.IsEnabled = false;
-
         var outcome = await _api.SubmitTagsAsync(epcs);
-
-        ScanButton.IsEnabled = true;
 
         if (!outcome.Ok || outcome.Value is null)
         {
             OnTagRejected(new RejectedTag(epc, "error", outcome.Message ?? "The shop could not read that tag."));
             return;
         }
-
-        TagEntry.Text = string.Empty;
 
         // Drawn from the response for immediacy; the hub will echo the same lines back and
         // OnLinesAdded drops them by sequence, so nothing appears twice.

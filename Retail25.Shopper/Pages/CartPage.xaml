@@ -14,7 +14,7 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header -->
-        <Grid Grid.Row="0" Padding="22,14,22,18" RowDefinitions="Auto,Auto">
+        <Grid Grid.Row="0" Padding="16,8,16,11" RowDefinitions="Auto,Auto">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Color="#93B4E2" Offset="0.0" />
@@ -48,7 +48,7 @@
 
             <VerticalStackLayout Grid.Row="1" Spacing="1">
                 <Label Text="RUNNING TOTAL" TextColor="#D6FFFFFF" FontFamily="SmaMedium" FontSize="8.5" CharacterSpacing="1.2" />
-                <Label x:Name="TotalLabel" Text="0.00" TextColor="White" FontFamily="SmaBold" FontSize="26" />
+                <Label x:Name="TotalLabel" Text="0.00" TextColor="White" FontFamily="SmaBold" FontSize="19" />
             </VerticalStackLayout>
         </Grid>
 
@@ -76,9 +76,9 @@
                 <DataTemplate>
                     <Border BackgroundColor="White"
                             Stroke="Transparent"
-                            StrokeShape="RoundRectangle 11"
-                            Padding="11,9"
-                            Margin="0,0,0,5">
+                            StrokeShape="RoundRectangle 9"
+                            Padding="9,6"
+                            Margin="0,0,0,4">
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                             <VerticalStackLayout Grid.Column="0" Spacing="2">
                                 <Label Text="{Binding Flag}"
@@ -87,8 +87,8 @@
                                        FontFamily="SmaMedium"
                                        FontSize="8"
                                        CharacterSpacing="1.1" />
-                                <Label Text="{Binding Name}" TextColor="#12142A" FontFamily="SmaMedium" FontSize="12" />
-                                <Label Text="{Binding Detail}" TextColor="#7A7E96" FontFamily="SmaText" FontSize="9.5" />
+                                <Label Text="{Binding Name}" TextColor="#12142A" FontFamily="SmaMedium" FontSize="10.5" />
+                                <Label Text="{Binding Detail}" TextColor="#7A7E96" FontFamily="SmaText" FontSize="8.5" />
                             </VerticalStackLayout>
 
                             <Label Grid.Column="1"
@@ -121,41 +121,32 @@
         </CollectionView>
 
         <!-- Totals + action -->
-        <VerticalStackLayout Grid.Row="2" Padding="18,12,18,20" Spacing="4" BackgroundColor="#F5F6FA">
+        <VerticalStackLayout Grid.Row="2" Padding="14,8,14,10" Spacing="2" BackgroundColor="#F5F6FA">
 
             <!--
-                The handheld's scan bar. With the C72's UHF module wired this becomes a single Scan
-                button driving the reader; until Chainway's SDK is on the build, the tag number is
-                typed or wedge-scanned into the field. Same server path either way.
-            -->
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,6">
-                <Border Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E2E4EE"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 10">
-                    <Entry x:Name="TagEntry"
-                           Placeholder="Scan or type a tag number"
-                           TextColor="#12142A"
-                           PlaceholderColor="#9EA2B8"
-                           FontFamily="SmaText"
-                           FontSize="11"
-                           Margin="10,0"
-                           ReturnType="Done"
-                           Completed="OnScanTag" />
-                </Border>
+                The scan control, and the reason it is the biggest thing on this half of the screen.
 
-                <Button Grid.Column="1"
-                        x:Name="ScanButton"
-                        Text="Add"
-                        BackgroundColor="#4C4F94"
-                        TextColor="White"
-                        FontFamily="SmaMedium"
-                        FontSize="11"
-                        CornerRadius="10"
-                        HeightRequest="38"
-                        Clicked="OnScanTag" />
-            </Grid>
+                This is a self-checkout handheld: reading a tag is the entire job, and every other
+                control here is something the shopper does once at the end. It is a button rather
+                than only the hardware trigger because a customer handed a device does not know
+                which of its buttons is the trigger, and finds out by pressing all of them.
+
+                The typed field that used to sit under it is gone on purpose. A customer at a
+                self-checkout has no reason to read a number off a label and key it in — the radio
+                exists so they never have to — and leaving the box there made the screen look like a
+                form to fill in rather than a scanner to point.
+            -->
+            <Button x:Name="TapToScanButton"
+                    Text="TAP TO SCAN"
+                    BackgroundColor="#4C4F94"
+                    TextColor="White"
+                    FontFamily="SmaBold"
+                    FontSize="12"
+                    CharacterSpacing="1.4"
+                    CornerRadius="10"
+                    HeightRequest="42"
+                    Margin="0,0,0,7"
+                    Clicked="OnTapToScan" />
 
             <!--
                 A tag the reader saw and refused. Shown, never swallowed: an item that silently fails
@@ -187,8 +178,8 @@
             </Grid>
 
             <Grid ColumnDefinitions="*,Auto" Margin="0,3,0,10">
-                <Label Grid.Column="0" Text="Total" TextColor="#12142A" FontFamily="SmaBold" FontSize="14" />
-                <Label Grid.Column="1" x:Name="GrandTotalLabel" Text="0.00" TextColor="#12142A" FontFamily="SmaBold" FontSize="14" />
+                <Label Grid.Column="0" Text="Total" TextColor="#12142A" FontFamily="SmaBold" FontSize="12.5" />
+                <Label Grid.Column="1" x:Name="GrandTotalLabel" Text="0.00" TextColor="#12142A" FontFamily="SmaBold" FontSize="12.5" />
             </Grid>
 
             <Button x:Name="PayButton"
@@ -196,9 +187,9 @@
                     BackgroundColor="#1D2050"
                     TextColor="White"
                     FontFamily="SmaMedium"
-                    FontSize="12.5"
-                    CornerRadius="24"
-                    HeightRequest="46"
+                    FontSize="11.5"
+                    CornerRadius="18"
+                    HeightRequest="38"
                     Clicked="OnPay" />
 
             <!--
@@ -212,7 +203,7 @@
                     FontFamily="SmaMedium"
                     FontSize="11"
                     BorderWidth="0"
-                    HeightRequest="34"
+                    HeightRequest="27"
                     Clicked="OnPreviousSales" />
 
             <Button Text="Leave This Counter"
@@ -221,7 +212,7 @@
                     FontFamily="SmaText"
                     FontSize="11"
                     BorderWidth="0"
-                    HeightRequest="34"
+                    HeightRequest="27"
                     Clicked="OnLeave" />
 
         </VerticalStackLayout>

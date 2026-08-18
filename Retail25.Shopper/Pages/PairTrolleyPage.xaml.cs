@@ -53,7 +53,17 @@ public partial class PairTrolleyPage : ContentPage
         // The keyboard is the point of this screen, so it opens with the field already focused. The
         // small delay is not superstition: focusing during the appearing transition is dropped on
         // Android, and the shopper is left tapping at boxes that look like inputs and are not.
-        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(350), () => CodeEntry.Focus());
+        //
+        // Only when there is something to type, though. A shopper still on a counter arrives with
+        // the code already filled in below, and opening a keyboard over the Connect button they came
+        // here to press is worse than no keyboard at all.
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(350), () =>
+        {
+            if ((CodeEntry.Text?.Length ?? 0) < CodeLength)
+            {
+                CodeEntry.Focus();
+            }
+        });
 
         // Say up front where they already are.
         //
@@ -90,6 +100,15 @@ public partial class PairTrolleyPage : ContentPage
         }
 
         Paint(digits);
+
+        // The code is complete, so the keyboard has nothing left to contribute — and while it is up
+        // it covers Connect and the two buttons under it. A shopper who has typed 302 and cannot see
+        // the button that uses it will tap where the button is drawn and hit a number key instead,
+        // which is exactly what happened when this was tested on the handheld.
+        if (digits.Length == CodeLength)
+        {
+            CodeEntry.Unfocus();
+        }
     }
 
     private void Paint(string code)
